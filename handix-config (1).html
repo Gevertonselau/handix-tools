@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handix · Configuração de Domínios</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #13161e;
+      --surface2: #1a1e2a;
+      --surface3: #1e2333;
+      --border: #252a38;
+      --border2: #2e3447;
+      --accent: #00e5a0;
+      --accent-dim: rgba(0,229,160,0.10);
+      --accent-glow: rgba(0,229,160,0.25);
+      --blue: #4d9fff;
+      --blue-dim: rgba(77,159,255,0.10);
+      --red: #ff4d6d;
+      --red-dim: rgba(255,77,109,0.10);
+      --yellow: #ffd166;
+      --yellow-dim: rgba(255,209,102,0.10);
+      --text: #e8eaf0;
+      --text-muted: #6b7390;
+      --text-dim: #3d4460;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      padding: 32px 20px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,160,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,160,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Page header */
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,229,160,0.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--accent);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .badge-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+
+    .page-header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    .page-header p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      line-height: 1.6;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.4;
+    }
+
+    .card-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .step {
+      width: 22px; height: 22px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,229,160,0.25);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    .card-body { padding: 20px 22px; }
+
+    /* Input row */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .field { flex: 1; }
+
+    label {
+      display: block;
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: rgba(0,229,160,0.35);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    input::placeholder { color: var(--text-dim); }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0d0f14;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #00ffb0;
+      box-shadow: 0 0 18px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border2);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: rgba(0,229,160,0.3);
+      color: var(--accent);
+    }
+
+    .btn svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    /* Alert */
+    .alert {
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-family: var(--mono);
+      margin-top: 14px;
+      line-height: 1.5;
+    }
+
+    .alert.show { display: flex; }
+    .alert.error { background: var(--red-dim); border: 1px solid rgba(255,77,109,0.2); color: var(--red); }
+    .alert.warn  { background: var(--yellow-dim); border: 1px solid rgba(255,209,102,0.2); color: var(--yellow); }
+    .alert.info  { background: var(--blue-dim); border: 1px solid rgba(77,159,255,0.2); color: var(--blue); }
+    .alert.success { background: var(--accent-dim); border: 1px solid rgba(0,229,160,0.2); color: var(--accent); }
+
+    .alert-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; margin-top: 3px; }
+
+    /* Results table */
+    .results { margin-top: 16px; display: none; }
+    .results.show { display: block; }
+
+    .results-label {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .result-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .result-item:hover { border-color: rgba(0,229,160,0.3); background: var(--surface3); }
+    .result-item.selected { border-color: var(--accent); background: var(--accent-dim); }
+
+    .result-item.selected::after {
+      content: '✓ Selecionado';
+      position: absolute;
+      top: 12px; right: 14px;
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--accent);
+      letter-spacing: 0.3px;
+    }
+
+    .result-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .result-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .result-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .result-field-key {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      min-width: 70px;
+    }
+
+    .result-field-val {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .result-item.selected .result-field-val {
+      background: rgba(0,229,160,0.05);
+      border-color: rgba(0,229,160,0.15);
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+      display: flex;
+      align-items: center;
+    }
+
+    .copy-btn:hover { color: var(--accent); }
+    .copy-btn svg { width: 12px; height: 12px; fill: currentColor; }
+
+    /* Summary box */
+    .summary {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .summary.show { display: block; }
+
+    .summary-title {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .summary-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .summary-row:last-child { margin-bottom: 0; }
+
+    .summary-key {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      min-width: 110px;
+    }
+
+    .summary-val {
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--accent);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .summary-val.empty { color: var(--text-dim); font-style: italic; }
+
+    /* Copy toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface);
+      border: 1px solid rgba(0,229,160,0.3);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--accent);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.2s;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Footer */
+    .page-footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="badge"><span class="badge-dot"></span> Handix API · Configuração</div>
+    <h1>Buscar Domain & Gateway</h1>
+    <p>Consulte os endpoints <code style="color:var(--accent);font-size:12px">/user/domains</code> e <code style="color:var(--accent);font-size:12px">/user/domains/{id}/gateways</code> para obter os IDs necessários para o Click-to-Call.</p>
+  </div>
+
+  <!-- STEP 1: Token + Buscar Domínios -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="step">1</span>
+        Autenticação e Domínios
+      </div>
+      <span class="card-subtitle">GET /user/domains</span>
+    </div>
+    <div class="card-body">
+      <div class="input-row">
+        <div class="field">
+          <label>Bearer Token *</label>
+          <input type="password" id="token" placeholder="Seu token da API Handix" />
+        </div>
+        <button class="btn btn-primary" id="btn-domains" onclick="buscarDominios()">
+          <svg viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          Buscar Domínios
+        </button>
+      </div>
+
+      <div class="alert" id="alert-domains"></div>
+
+      <div class="results" id="results-domains">
+        <div class="results-label">Domínios encontrados — clique para selecionar</div>
+        <div id="list-domains"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Buscar Gateways -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="step">2</span>
+        Gateways do Domínio
+      </div>
+      <span class="card-subtitle">GET /user/domains/{domain_id}/gateways</span>
+    </div>
+    <div class="card-body">
+      <div class="input-row">
+        <div class="field">
+          <label>Domain ID selecionado</label>
+          <input type="text" id="selected-domain-id" placeholder="Selecione um domínio acima primeiro" readonly />
+        </div>
+        <button class="btn btn-primary" id="btn-gateways" onclick="buscarGateways()" disabled>
+          <svg viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          Buscar Gateways
+        </button>
+      </div>
+
+      <div class="alert" id="alert-gateways"></div>
+
+      <div class="results" id="results-gateways">
+        <div class="results-label">Gateways encontrados — clique para selecionar</div>
+        <div id="list-gateways"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Resumo final -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="step">3</span>
+        Resumo para Click-to-Call
+      </div>
+      <span class="card-subtitle">Copie para o click-to-call.html</span>
+    </div>
+    <div class="card-body">
+      <div class="summary show" id="summary">
+        <div class="summary-title">Configuração atual</div>
+
+        <div class="summary-row">
+          <span class="summary-key">Bearer Token</span>
+          <span class="summary-val empty" id="sum-token">Não informado</span>
+          <button class="copy-btn" onclick="copiar('sum-token', 'Token copiado!')">
+            <svg viewBox="0 0 24 24"><path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2M8 4a2 2 0 012-2h4a2 2 0 012 2M8 4h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-key">Domain ID</span>
+          <span class="summary-val empty" id="sum-domain">Não selecionado</span>
+          <button class="copy-btn" onclick="copiar('sum-domain', 'Domain ID copiado!')">
+            <svg viewBox="0 0 24 24"><path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2M8 4a2 2 0 012-2h4a2 2 0 012 2M8 4h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-key">Domain Name</span>
+          <span class="summary-val empty" id="sum-domain-name">—</span>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-key">Gateway UUID</span>
+          <span class="summary-val empty" id="sum-gateway">Não selecionado</span>
+          <button class="copy-btn" onclick="copiar('sum-gateway', 'Gateway UUID copiado!')">
+            <svg viewBox="0 0 24 24"><path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2M8 4a2 2 0 012-2h4a2 2 0 012 2M8 4h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-key">Gateway Name</span>
+          <span class="summary-val empty" id="sum-gateway-name">—</span>
+        </div>
+      </div>
+
+      <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="copiarTudo()">
+          <svg viewBox="0 0 24 24"><path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2M8 4a2 2 0 012-2h4a2 2 0 012 2M8 4h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          Copiar tudo como JSON
+        </button>
+        <button class="btn btn-secondary" onclick="salvarLocal()">
+          <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          Salvar no localStorage
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">Handix API · phx-dev.cloudhandix.com.br/api · v1.1</div>
+</div>
+
+<div id="toast">✓ Copiado!</div>
+
+<script>
+  const API_BASE = 'https://phx-dev.cloudhandix.com.br/api';
+
+  let selectedDomainId = '';
+  let selectedGatewayUuid = '';
+
+  // Carregar token salvo
+  const savedToken = localStorage.getItem('handix_token');
+  if (savedToken) document.getElementById('token').value = savedToken;
+
+  function getToken() {
+    const t = document.getElementById('token').value.trim();
+    return t.startsWith('Bearer ') ? t : 'Bearer ' + t;
+  }
+
+  function getRawToken() {
+    return document.getElementById('token').value.trim();
+  }
+
+  // ─── Buscar Domínios ─────────────────────────────────────────────────────────
+  async function buscarDominios() {
+    const token = getRawToken();
+    if (!token) { showAlert('alert-domains', 'error', 'Informe o Bearer Token antes de buscar.'); return; }
+
+    const btn = document.getElementById('btn-domains');
+    setLoading(btn, true, 'Buscando...');
+    hideAlert('alert-domains');
+    document.getElementById('results-domains').classList.remove('show');
+
+    try {
+      const resp = await fetch(`${API_BASE}/user/domains`, {
+        headers: { 'Authorization': getToken(), 'Content-Type': 'application/json' }
+      });
+
+      if (resp.status === 401) { showAlert('alert-domains', 'error', '401 — Token inválido ou expirado.'); return; }
+      if (!resp.ok) { showAlert('alert-domains', 'error', `Erro ${resp.status} ao buscar domínios.`); return; }
+
+      const data = await resp.json();
+      // API Handix retorna { success: true, data: [ { id, domain_name } ] }
+      const dominios = Array.isArray(data) ? data : (data.data || data.domains || data.items || []);
+
+      if (!dominios.length) { showAlert('alert-domains', 'warn', 'Nenhum domínio encontrado para este token.'); return; }
+
+      renderDominios(dominios);
+      localStorage.setItem('handix_token', getRawToken());
+      atualizarResumo();
+
+    } catch(e) {
+      showAlert('alert-domains', 'error', 'Erro de rede: ' + e.message);
+    } finally {
+      setLoading(btn, false);
+      btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg> Buscar Domínios`;
+    }
+  }
+
+  function renderDominios(lista) {
+    const container = document.getElementById('list-domains');
+    container.innerHTML = '';
+
+    lista.forEach(d => {
+      // Campos exatos da API Handix: { id, domain_name }
+      const id   = d.id || d.domain_id || d.uuid || '—';
+      const nome = d.domain_name || d.name || d.domain || d.label || id;
+      const host = d.host || d.domain_host || '';
+
+      const el = document.createElement('div');
+      el.className = 'result-item';
+      el.dataset.id = id;
+      el.dataset.name = nome;
+      el.innerHTML = `
+        <div class="result-name">${nome}</div>
+        <div class="result-fields">
+          <div class="result-field">
+            <span class="result-field-key">Domain ID</span>
+            <span class="result-field-val">${id}</span>
+            <button class="copy-btn" onclick="event.stopPropagation(); copyText('${id}', 'Domain ID copiado!')" title="Copiar">
+              <svg viewBox="0 0 24 24"><path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2M8 4a2 2 0 012-2h4a2 2 0 012 2M8 4h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          ${host ? `<div class="result-field"><span class="result-field-key">Host</span><span class="result-field-val">${host}</span></div>` : ''}
+        </div>
+      `;
+
+      el.addEventListener('click', () => {
+        document.querySelectorAll('#list-domains .result-item').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedDomainId = id;
+        document.getElementById('selected-domain-id').value = id;
+        document.getElementById('btn-gateways').disabled = false;
+
+        // Limpar gateways anteriores
+        document.getElementById('list-gateways').innerHTML = '';
+        document.getElementById('results-gateways').classList.remove('show');
+        selectedGatewayUuid = '';
+
+        atualizarResumo(nome, '', '');
+      });
+
+      container.appendChild(el);
+    });
+
+    document.getElementById('results-domains').classList.add('show');
+  }
+
+  // ─── Buscar Gateways ─────────────────────────────────────────────────────────
+  async function buscarGateways() {
+    if (!selectedDomainId) { showAlert('alert-gateways', 'warn', 'Selecione um domínio primeiro.'); return; }
+
+    const btn = document.getElementById('btn-gateways');
+    setLoading(btn, true, 'Buscando...');
+    hideAlert('alert-gateways');
+    document.getElementById('results-gateways').classList.remove('show');
+
+    try {
+      const resp = await fetch(`${API_BASE}/user/domains/${selectedDomainId}/gateways`, {
+        headers: { 'Authorization': getToken(), 'Content-Type': 'application/json' }
+      });
+
+      if (resp.status === 401) { showAlert('alert-gateways', 'error', '401 — Token inválido ou expirado.'); return; }
+      if (resp.status === 404) { showAlert('alert-gateways', 'error', '404 — Domínio não encontrado.'); return; }
+      if (!resp.ok) { showAlert('alert-gateways', 'error', `Erro ${resp.status} ao buscar gateways.`); return; }
+
+      const data = await resp.json();
+      const gateways = Array.isArray(data) ? data : (data.data || data.gateways || data.items || []);
+
+      if (!gateways.length) { showAlert('alert-gateways', 'warn', 'Nenhum gateway encontrado para este domínio.'); return; }
+
+      renderGateways(gateways);
+
+    } catch(e) {
+      showAlert('alert-gateways', 'error', 'Erro de rede: ' + e.message);
+    } finally {
+      setLoading(btn, false);
+      btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg> Buscar Gateways`;
+    }
+  }
+
+  function renderGateways(lista) {
+    const container = document.getElementById('list-gateways');
+    container.innerHTML = '';
+
+    lista.forEach(g => {
+      // Campos exatos da API Handix: { gateway_uuid, gateway }
+      const uuid = g.gateway_uuid || g.uuid || g.id || '—';
+      const nome = g.gateway || g.name || g.label || g.description || uuid;
+      const host = g.host || g.address || g.ip || '';
+      const porta = g.port || '';
+
+      const el = document.createElement('div');
+      el.className = 'result-item';
+      el.dataset.uuid = uuid;
+      el.dataset.name = nome;
+      el.innerHTML = `
+        <div class="result-name">${nome}</div>
+        <div class="result-fields">
+          <div class="result-field">
+            <span class="result-field-key">Gateway UUID</span>
+            <span class="result-field-val">${uuid}</span>
+            <button class="copy-btn" onclick="event.stopPropagation(); copyText('${uuid}', 'Gateway UUID copiado!')" title="Copiar">
+              <svg viewBox="0 0 24 24"><path d="M8 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2M8 4a2 2 0 012-2h4a2 2 0 012 2M8 4h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          ${host ? `<div class="result-field"><span class="result-field-key">Host</span><span class="result-field-val">${host}${porta ? ':'+porta : ''}</span></div>` : ''}
+        </div>
+      `;
+
+      el.addEventListener('click', () => {
+        document.querySelectorAll('#list-gateways .result-item').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedGatewayUuid = uuid;
+
+        const domainName = document.querySelector('#list-domains .selected')?.dataset?.name || '';
+        atualizarResumo(domainName, uuid, nome);
+      });
+
+      container.appendChild(el);
+    });
+
+    document.getElementById('results-gateways').classList.add('show');
+  }
+
+  // ─── Resumo ──────────────────────────────────────────────────────────────────
+  function atualizarResumo(domainName, gatewayUuid, gatewayName) {
+    const token = getRawToken();
+    const masked = token ? token.substring(0, 12) + '...' : null;
+
+    setVal('sum-token', masked || null);
+    setVal('sum-domain', selectedDomainId || null);
+    setVal('sum-domain-name', domainName || null);
+    setVal('sum-gateway', gatewayUuid !== undefined ? (gatewayUuid || null) : (selectedGatewayUuid || null));
+    setVal('sum-gateway-name', gatewayName !== undefined ? (gatewayName || null) : null);
+  }
+
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (val) {
+      el.textContent = val;
+      el.classList.remove('empty');
+    } else {
+      el.textContent = id.includes('name') ? '—' : 'Não selecionado';
+      el.classList.add('empty');
+    }
+  }
+
+  // ─── Copiar ──────────────────────────────────────────────────────────────────
+  function copiar(id, msg) {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains('empty')) copyText(el.textContent, msg);
+  }
+
+  function copyText(text, msg) {
+    navigator.clipboard.writeText(text).then(() => showToast(msg || 'Copiado!'));
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = '✓ ' + msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function copiarTudo() {
+    const obj = {
+      bearer_token: getRawToken(),
+      domain_id: selectedDomainId || '',
+      gateway_uuid: selectedGatewayUuid || ''
+    };
+    copyText(JSON.stringify(obj, null, 2), 'JSON copiado!');
+  }
+
+  function salvarLocal() {
+    if (getRawToken()) localStorage.setItem('handix_token', getRawToken());
+    if (selectedDomainId) localStorage.setItem('handix_domain_id', selectedDomainId);
+    if (selectedGatewayUuid) localStorage.setItem('handix_gateway_uuid', selectedGatewayUuid);
+    showToast('Salvo no localStorage!');
+  }
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
+  function showAlert(id, type, msg) {
+    const el = document.getElementById(id);
+    el.className = 'alert show ' + type;
+    el.innerHTML = `<div class="alert-dot"></div><span>${msg}</span>`;
+  }
+
+  function hideAlert(id) {
+    document.getElementById(id).className = 'alert';
+  }
+
+  function setLoading(btn, loading, label) {
+    btn.disabled = loading;
+    if (loading) btn.innerHTML = `<div class="spinner"></div> ${label}`;
+  }
+</script>
+</body>
+</html>

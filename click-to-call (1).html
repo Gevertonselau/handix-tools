@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Click-to-Call · Handix</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #13161e;
+      --surface2: #1a1e2a;
+      --border: #252a38;
+      --accent: #00e5a0;
+      --accent-dim: rgba(0,229,160,0.12);
+      --accent-glow: rgba(0,229,160,0.3);
+      --red: #ff4d6d;
+      --red-dim: rgba(255,77,109,0.12);
+      --yellow: #ffd166;
+      --text: #e8eaf0;
+      --text-muted: #6b7390;
+      --text-dim: #3d4460;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 60px rgba(0,229,160,0.05), 0 24px 48px rgba(0,0,0,0.4);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.6;
+    }
+
+    /* Header */
+    .header {
+      padding: 24px 28px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .phone-icon {
+      width: 40px; height: 40px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,229,160,0.2);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .phone-icon svg {
+      width: 18px; height: 18px;
+      fill: var(--accent);
+    }
+
+    .header-text h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.2px;
+    }
+
+    .header-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-family: var(--mono);
+    }
+
+    /* Body */
+    .body { padding: 24px 28px; }
+
+    /* Info block */
+    .info-block {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .info-row + .info-row {
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+      padding-top: 12px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-value {
+      font-size: 13px;
+      font-family: var(--mono);
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .info-value.loading {
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    /* Config fields */
+    .field-group { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: rgba(0,229,160,0.4);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    input::placeholder { color: var(--text-dim); }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+
+    /* Button */
+    .btn-call {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #0d0f14;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-call:hover:not(:disabled) {
+      background: #00ffb0;
+      box-shadow: 0 0 24px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-call:active:not(:disabled) { transform: translateY(0); }
+
+    .btn-call:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-call svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+
+    /* Pulse animation on button when calling */
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    .btn-call.calling::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      border-radius: 10px;
+      animation: pulse-ring 1s ease-out infinite;
+    }
+
+    /* Status */
+    .status {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: var(--mono);
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.5;
+    }
+
+    .status.show { display: flex; }
+    .status.loading { background: var(--accent-dim); border: 1px solid rgba(0,229,160,0.2); color: var(--accent); }
+    .status.success { background: var(--accent-dim); border: 1px solid rgba(0,229,160,0.2); color: var(--accent); }
+    .status.error { background: var(--red-dim); border: 1px solid rgba(255,77,109,0.2); color: var(--red); }
+    .status.warn { background: rgba(255,209,102,0.1); border: 1px solid rgba(255,209,102,0.2); color: var(--yellow); }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .status.success .status-dot, .status.loading .status-dot { background: var(--accent); }
+    .status.error .status-dot { background: var(--red); }
+    .status.warn .status-dot { background: var(--yellow); }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .status.loading .status-dot { animation: blink 1s ease-in-out infinite; }
+
+    /* Response detail */
+    .response-box {
+      margin-top: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: pre-wrap;
+      word-break: break-all;
+      display: none;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .response-box.show { display: block; }
+
+    /* Footer */
+    .footer {
+      padding: 14px 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-tag {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+    }
+
+    .status-indicator .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <div class="phone-icon">
+      <svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+    </div>
+    <div class="header-text">
+      <h1>Click-to-Call</h1>
+      <p>Handix Telephony API</p>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- Info do atendimento -->
+    <div class="info-block">
+      <div class="info-row">
+        <span class="info-label">Session ID</span>
+        <span class="info-value loading" id="display-session">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Destino</span>
+        <span class="info-value" id="display-dest">—</span>
+      </div>
+    </div>
+
+    <!-- Configurações -->
+    <div class="field-group">
+      <label>Bearer Token *</label>
+      <input type="password" id="token" placeholder="Bearer xxxxxxxxxxxxxxxxxxxx" />
+    </div>
+
+    <div class="field-group">
+      <label>Domain ID *</label>
+      <input type="text" id="domain_id" placeholder="00a000aa-00aa-0a00-0000-000aaa0aa00a" />
+    </div>
+
+    <div class="field-group">
+      <label>Gateway UUID *</label>
+      <input type="text" id="gateway_uuid" placeholder="00a000aa-00aa-0a00-0000-000aaa0aa00a" />
+    </div>
+
+    <div class="field-group">
+      <label>Ramal (Caller Number) *</label>
+      <input type="text" id="caller_number" placeholder="200" />
+    </div>
+
+    <div class="field-group">
+      <label>Número de Destino *</label>
+      <input type="text" id="destination_number" placeholder="5511999999999" />
+    </div>
+
+    <hr class="divider">
+
+    <button class="btn-call" id="btn-call" onclick="ligar()">
+      <svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+      Iniciar Ligação
+    </button>
+
+    <div class="status" id="status">
+      <div class="status-dot"></div>
+      <span id="status-msg"></span>
+    </div>
+
+    <div class="response-box" id="response-box"></div>
+
+  </div>
+
+  <div class="footer">
+    <span class="footer-tag">Handix Telephony · v1.1</span>
+    <span class="status-indicator">
+      <span class="dot"></span>
+      API conectada
+    </span>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'https://phx-dev.cloudhandix.com.br/api';
+
+  // ─── Lê parâmetros da URL ───────────────────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  const sessionId     = params.get('session_id')   || params.get('id') || '';
+  const phoneFromUrl  = params.get('phone')         || params.get('contact_phone') || '';
+
+  // Preenche exibição
+  if (sessionId) {
+    document.getElementById('display-session').textContent = sessionId;
+    document.getElementById('display-session').classList.remove('loading');
+  }
+  if (phoneFromUrl) {
+    document.getElementById('display-dest').textContent = phoneFromUrl;
+    document.getElementById('destination_number').value = phoneFromUrl;
+  }
+
+  // ─── Persistência local de configuração ────────────────────────────────────
+  const FIELDS = ['token','domain_id','gateway_uuid','caller_number'];
+  FIELDS.forEach(id => {
+    const saved = localStorage.getItem('handix_' + id);
+    if (saved) document.getElementById(id).value = saved;
+    document.getElementById(id).addEventListener('change', e => {
+      localStorage.setItem('handix_' + id, e.target.value);
+    });
+  });
+
+  // ─── Função principal ───────────────────────────────────────────────────────
+  async function ligar() {
+    const token       = document.getElementById('token').value.trim();
+    const domain_id   = document.getElementById('domain_id').value.trim();
+    const gateway_uuid= document.getElementById('gateway_uuid').value.trim();
+    const caller      = document.getElementById('caller_number').value.trim();
+    const destination = document.getElementById('destination_number').value.trim();
+
+    // Validação
+    if (!token || !domain_id || !gateway_uuid || !caller || !destination) {
+      showStatus('warn', 'Preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    const btn = document.getElementById('btn-call');
+    btn.disabled = true;
+    btn.classList.add('calling');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="fill:currentColor;width:16px;height:16px"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg> Conectando...`;
+
+    showStatus('loading', 'Enviando requisição à API Handix...');
+    hideResponse();
+
+    try {
+      const body = {
+        domain_id,
+        gateway_uuid,
+        caller_number: caller,
+        destination_number: destination
+      };
+
+      const authHeader = token.startsWith('Bearer ') ? token : 'Bearer ' + token;
+
+      const resp = await fetch(`${API_BASE}/telephony/click-to-call`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await resp.json();
+      showResponse(JSON.stringify(data, null, 2));
+
+      if (resp.ok && data.success) {
+        showStatus('success', `✅ Ligação iniciada! Call ID: ${data.data?.call_id || '—'}`);
+      } else if (resp.status === 401) {
+        showStatus('error', '401 — Token inválido ou expirado. Verifique o Bearer Token.');
+      } else if (resp.status === 404) {
+        showStatus('error', '404 — Gateway não encontrado para este domínio.');
+      } else if (resp.status === 422) {
+        const erros = data.errors?.map(e => Object.values(e).join(': ')).join(' | ') || data.message;
+        showStatus('error', '422 — Dados inválidos: ' + erros);
+      } else {
+        showStatus('error', `Erro ${resp.status}: ${data.message || 'Falha desconhecida.'}`);
+      }
+
+    } catch (e) {
+      showStatus('error', 'Erro de rede: ' + e.message + '. Verifique CORS ou conectividade.');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('calling');
+      btn.innerHTML = `<svg viewBox="0 0 24 24" style="fill:currentColor;width:16px;height:16px"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg> Iniciar Ligação`;
+    }
+  }
+
+  function showStatus(type, msg) {
+    const el = document.getElementById('status');
+    const msgEl = document.getElementById('status-msg');
+    el.className = 'status show ' + type;
+    msgEl.textContent = msg;
+  }
+
+  function showResponse(text) {
+    const el = document.getElementById('response-box');
+    el.textContent = text;
+    el.classList.add('show');
+  }
+
+  function hideResponse() {
+    document.getElementById('response-box').classList.remove('show');
+  }
+
+  // Enter para ligar
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') ligar();
+  });
+</script>
+</body>
+</html>
